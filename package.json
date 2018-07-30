@@ -1,0 +1,20 @@
+{
+  "name": "rcepexample",
+  "version": "0.0.1",
+  "description": "An example application that aims to demonstrate some operations implemented by the Reactive CEP project",
+  "main": "",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "Reactive CEP"
+  ],
+  "dependencies": {
+    "ramda": "0.25.0",
+    "rxjs": "6.2.2",
+	"fast-csv": "^2.4.1",
+    "socket.io": "2.1.1"
+  },
+  "author": "czimml",
+  "license": "MIT"
+}
