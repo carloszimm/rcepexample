@@ -10,9 +10,10 @@
     "Reactive CEP"
   ],
   "dependencies": {
+    "fast-csv": "^2.4.1",
+    "geodesy": "1.1.3",
     "ramda": "0.25.0",
     "rxjs": "6.2.2",
-	"fast-csv": "^2.4.1",
     "socket.io": "2.1.1"
   },
   "author": "czimml",
