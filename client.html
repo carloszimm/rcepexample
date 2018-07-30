@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Reactive CEP</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
+    <!--Google Maps-->
+    <script src="https://maps.googleapis.com/maps/api/js"></script>
+    <!--JQuery-->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <!--Bootstrap-->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+    <!--JQuery QueryBuilder-->
+    <script src="https://cdn.jsdelivr.net/npm/jQuery-QueryBuilder/dist/js/query-builder.standalone.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/jQuery-QueryBuilder/dist/css/query-builder.default.min.css" rel="stylesheet">
+
+    <script src="./js/rcep.min.js"></script>
+
+    <!--local configs-->
+    <script src="./js/initmarkers.js"></script>
+    <script src="./js/configmaps.js"></script>
+    <link href="./css/style.css" rel="stylesheet">
+</head>
+
+<body>
+    <!-- Modal -->
+    <div class="modal fade" id="myModal" role="dialog">
+        <div class="modal-dialog">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Details</h4>
+                </div>
+                <div class="modal-body">
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="row">
+            <div class="panel panel-default main-panel">
+                <div class="panel-heading">Reactive CEP Example</div>
+                <div class="panel-body">
+                    <div class="panel panel-default">
+                        <div class="panel-body">
+                            <form action="javascript:0">
+                                <div class="row" id="firstRow">
+                                    <div class="col-sm-6 form-inline alignTextCenter">
+                                        <h4>Distance Pattern Type</h4>
+                                        <div class="form-group">
+                                            <select class="form-control" id="pattype">
+                                                <option value="minDistancePattern">Min Distance Pattern</option>
+                                                <option value="maxDistancePattern">Max Distance Pattern</option>
+                                                <option value="avgDistancePattern">Average Distance Pattern</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-6 form-inline alignTextCenter">
+                                        <h4>Window</h4>
+                                        <div class="form-group">
+                                            <select class="form-control" id="wintype">
+                                                <option value="tumblingCountWindow">Tumbling Count Window</option>
+                                                <option value="slidingCountWindow">Sliding Count Window</option>
+                                                <option value="hoppingCountWindow">Hopping Count Window</option>
+                                                <option value="tumblingTemporalWindow">Tumbling Temporal Window</option>
+                                                <option value="hoppingTemporalWindow">Hopping Temporal Window</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <input type="number" class="form-control winOptions" id="windowSize" placeholder="size" min="0" required>
+                                            <input type="number" class="form-control winOptions" id="size" placeholder="" min="0" disabled>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row latlon alignTextCenter">
+                                    <hr />
+                                    <h4>Location
+                                        <a href="#" data-toggle="tooltip" title="Drag the direction marker to set the location">
+                                            <i class="material-icons doubtLocation">help_outline</i>
+                                        </a>
+                                    </h4>
+                                    <div class="form-inline">
+                                        <div class="form-group">
+                                            <label for="latitude">Latitude:</label>
+                                            <input type="text" class="form-control" id="latitude" value="-8.008" readonly>
+                                        </div>
+                                        <div class="form-group marginLeft10">
+                                            <label for="longitude">Longitude:</label>
+                                            <input type="text" class="form-control" id="longitude" value="-34.891" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                                <hr />
+                                <div class="alignTextCenter">
+                                    <h4>Pattern Assertion</h4>
+                                    <div class="row" style="text-align: start;">
+                                        <div class="col-md-3 col-lg-2"></div>
+                                        <div class="col-md-6 col-lg-8">
+                                            <div id="builderMin" class="builder"></div>
+                                            <div id="builderMax" style="display: none" class="builder"></div>
+                                            <div id="builderAvg" style="display: none" class="builder"></div>
+                                        </div>
+                                        <div class="col-md-3 col-lg-2"></div>
+                                    </div>
+                                </div>
+                                <hr />
+                                <div class="row startPattern alignTextCenter">
+                                    <div class="form-inline">
+                                        <h4>New Event Type Id</h4>
+                                        <div class="form-group evtTypeParent">
+                                            <input type="text" class="form-control" id="newEventTypeId" required>
+                                        </div>
+                                        <div class="row setunset">
+                                            <div class="col-sm-6 col-sm-offset-3">
+                                                <button class="btn btn-info" onclick="validate()" id="setPattern">Set Pattern</button>
+                                                <button class="btn btn-info" onclick="unset()" type="button" id="unsetPattern" disabled>Unset Pattern</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </form>
+                        </div>
+                    </div>
+
+                    <div id="mapElement"></div>
+
+                    <div class="table-responsive">
+                        <table class="table" id="log">
+                            <thead>
+                                <tr>
+                                    <th>Event Type Id</th>
+                                    <th>Detection Time</th>
+                                    <th>JSON</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marker-animate-unobtrusive/0.2.8/vendor/markerAnimate.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marker-animate-unobtrusive/0.2.8/SlidingMarker.min.js"></script>
+
+    <script src="./js/parser-query.js"></script>
+
+    <!--local configs-->
+    <script src="./js/config.js"></script>
+
+    <!--Socket.io-->
+    <!--websocket-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
+
+    <script>
+        const { fromEvent, of } = rxjs;
+        const { map, delay, concatMap, tap } = rxjs.operators;
+        const { EventManager, Point, EventType } = rcep;
+
+        class GpsLocation extends EventType {
+            constructor(occurrence, lat, lon, source) {
+                super('GPS location', occurrence, '', `Bus ${source}`);
+                this._location = new Point(lat, lon);
+            }
+            get location() {
+                return this._location;
+            }
+
+            set location(point) {
+                this._location = point;
+            }
+        }
+
+        const socket = io('http://localhost:1337');
+
+        let patternStream, streamSubscription;
+
+        patternStream = fromEvent(socket, 'message');
+
+        patternStream
+            .pipe(map(x => { delete x.occurrence; return x; }))
+            .subscribe(location => updateMarker(location));
+
+        function updateMarker(gpsLocation) {
+            marker[gpsLocation.source].setPosition(new google.maps.LatLng(gpsLocation.lat, gpsLocation.lon));
+        }
+
+        function setPattern() {
+            toggleSetPattern();
+            let eventSource = EventManager.create(patternStream, x => new GpsLocation(x.occurrence, x.lat, x.lon, x.source));
+            
+            streamSubscription = eventSource[$("#wintype option:selected").val()]($('#windowSize').val(), $('#size').val())
+            [$('#pattype option:selected').val()](['GPS location'],
+                new Point($('#latitude').val(), $('#longitude').val()),
+                'location', parseQuery(), $('#newEventTypeId').val())
+                .subscribe({
+                    next: derivedEvent => {
+                        sendAlert(derivedEvent._eventTypeId, derivedEvent._eventSource);
+                        logInfo(derivedEvent);
+                    },
+                    error: err => console.log(err)
+                });
+        }
+
+        function unset(){
+            if(streamSubscription){
+                streamSubscription.unsubscribe();
+            }
+            toggleSetPattern();
+        }
+
+        function toggleSetPattern(){
+            $("#setPattern").prop("disabled", !$("#setPattern").prop("disabled"));
+            $("#unsetPattern").prop("disabled", !$("#unsetPattern").prop("disabled"));
+        }
+
+    </script>
+
+    <script src="./js/bootstrap-notify.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css">
+
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/dataTables.bootstrap.min.css">
+
+    <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.19/js/dataTables.bootstrap.min.js"></script>
+
+    <link rel="stylesheet" href="./css/jquery.jsonview.min.css">
+    <script src="./js/jquery.jsonview.min.js"></script>
+
+</body>
+
+</html>
