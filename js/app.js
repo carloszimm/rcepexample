@@ -57,4 +57,5 @@ function unset() {
 function toggleSetPattern() {
     $("#setPattern").prop("disabled", !$("#setPattern").prop("disabled"));
     $("#unsetPattern").prop("disabled", !$("#unsetPattern").prop("disabled"));
+    $("#viewCode").prop("disabled", !$("#viewCode").prop("disabled"));
 }

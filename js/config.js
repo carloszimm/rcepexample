@@ -25,9 +25,17 @@ function filterPattern(idElm){
     }
 }
 
-function parseQuery(){
+function removeParentheses(val){
+    return val.slice(val.indexOf('(') + 1, val.lastIndexOf(')'));
+}
+
+function parseQueryExp(){
     const queryBElem = $(patternMap.get($('#pattype option:selected').val()));
-    const expParsed = parseQueryBuilder(queryBElem.queryBuilder('getRules'));
+    return parseQueryBuilder(queryBElem.queryBuilder('getRules'));
+}
+
+function parseQuery(){
+    const expParsed = parseQueryExp();
     
     return new Function('distance', 'return ' + expParsed);
 }
@@ -96,9 +104,23 @@ function sendAlert(derivedEvent){
     });
 }
 
-function openModal(data){
+function openModalLog(data){
     $('.modal-title').empty().text('Details');
     $('.modal-body').empty().JSONView(data, {collapsed: true});
+    $('#myModal').modal({show:true});
+}
+
+function generateCodeText(){
+    return "let eventSource = EventManager.create(fromEvent(socket, 'message'), "
+    + "\n\tx => new GpsLocation(x.occurrence, x.lat, x.lon, x.source));"
+    + `\n\nlet streamSubscription = eventSource.${$("#wintype option:selected").val()}(${$('#windowSize').val()}${$('#size').val()!=undefined && $('#size').val() != ''? ', '+ $('#size').val():''})`
+    + `\n\t.${$('#pattype option:selected').val()}(['GPS location'], new Point(${$('#latitude').val() +','+ $('#longitude').val()}),\n\t'location', distance => ${removeParentheses(parseQueryExp()) +", '"+ $('#newEventTypeId').val()}')`
+    + '\n\t.subscribe({\n\t\tnext: derivedEvent => {\n\t\t\tsendAlert(derivedEvent);\n\t\t\tlogInfo(derivedEvent);\n\t\t}\n\t}';
+}
+
+function openModalCode(){
+    $('.modal-title').empty().text('Generated Code');
+    $('.modal-body').empty().append($('<pre></pre>').text(generateCodeText()));
     $('#myModal').modal({show:true});
 }
 
@@ -168,6 +190,7 @@ $(document).ready(function () {
                 $('#size').attr('required', true);
             break;
         }
+        $('#size').val("");
     });
 
     $('#log').DataTable({
@@ -184,7 +207,10 @@ $(document).ready(function () {
     });
 
     $('#log tbody').on('click', 'tr', function () {
-        openModal($('#log').DataTable().row(this).data()[2]);   
+        openModalLog($('#log').DataTable().row(this).data()[2]);   
     });
     
+    $('#viewCode').on('click', function(){
+        openModalCode();
+    });
 });
