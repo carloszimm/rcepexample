@@ -35,11 +35,9 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
-                    <h4 class="modal-title">Details</h4>
+                    <h4 class="modal-title"></h4>
                 </div>
-                <div class="modal-body">
-
-                </div>
+                <div class="modal-body"></div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                 </div>
@@ -53,7 +51,7 @@
                 <div class="panel-body">
                     <div class="panel panel-default">
                         <div class="panel-body">
-                            <form action="javascript:0">
+                            <form>
                                 <div class="row" id="firstRow">
                                     <div class="col-sm-6 form-inline alignTextCenter">
                                         <h4>Distance Pattern Type</h4>
@@ -122,7 +120,8 @@
                                         </div>
                                         <div class="row setunset">
                                             <div class="col-sm-6 col-sm-offset-3">
-                                                <button class="btn btn-info" onclick="validate()" id="setPattern">Set Pattern</button>
+                                                <button type="submit" style="display: none"></button>
+                                                <button class="btn btn-info" onclick="validate()" id="setPattern" type="button">Set Pattern</button>
                                                 <button class="btn btn-info" onclick="unset()" type="button" id="unsetPattern" disabled>Unset Pattern</button>
                                             </div>
                                         </div>
@@ -159,75 +158,31 @@
 
     <script src="./js/parser-query.js"></script>
 
-    <!--local configs-->
-    <script src="./js/config.js"></script>
-
     <!--Socket.io-->
     <!--websocket-->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
 
     <script>
-        const { fromEvent, of } = rxjs;
-        const { map, delay, concatMap, tap } = rxjs.operators;
-        const { EventManager, Point, EventType } = rcep;
 
-        class GpsLocation extends EventType {
-            constructor(occurrence, lat, lon, source) {
-                super('GPS location', occurrence, '', `Bus ${source}`);
-                this._location = new Point(lat, lon);
-            }
-            get location() {
-                return this._location;
-            }
+        function loadScript(src, callback){
+            var script = document.createElement('script');
+            if(callback != undefined)
+                script.onload = callback;
+            script.src = src;
 
-            set location(point) {
-                this._location = point;
-            }
+            document.head.appendChild(script);
         }
 
-        const socket = io('http://localhost:1337');
-
-        let patternStream, streamSubscription;
-
-        patternStream = fromEvent(socket, 'message');
-
-        patternStream
-            .pipe(map(x => { delete x.occurrence; return x; }))
-            .subscribe(location => updateMarker(location));
-
-        function updateMarker(gpsLocation) {
-            marker[gpsLocation.source].setPosition(new google.maps.LatLng(gpsLocation.lat, gpsLocation.lon));
+        function WhenGoogleLoadedDo(fnt){
+            if(typeof google != 'undefined' && (marker != undefined))
+                fnt();
+            else
+                setTimeout(function(){
+                    WhenGoogleLoadedDo(fnt);
+                }, 500);
         }
 
-        function setPattern() {
-            toggleSetPattern();
-            let eventSource = EventManager.create(patternStream, x => new GpsLocation(x.occurrence, x.lat, x.lon, x.source));
-            
-            streamSubscription = eventSource[$("#wintype option:selected").val()]($('#windowSize').val(), $('#size').val())
-            [$('#pattype option:selected').val()](['GPS location'],
-                new Point($('#latitude').val(), $('#longitude').val()),
-                'location', parseQuery(), $('#newEventTypeId').val())
-                .subscribe({
-                    next: derivedEvent => {
-                        sendAlert(derivedEvent._eventTypeId, derivedEvent._eventSource);
-                        logInfo(derivedEvent);
-                    },
-                    error: err => console.log(err)
-                });
-        }
-
-        function unset(){
-            if(streamSubscription){
-                streamSubscription.unsubscribe();
-            }
-            toggleSetPattern();
-        }
-
-        function toggleSetPattern(){
-            $("#setPattern").prop("disabled", !$("#setPattern").prop("disabled"));
-            $("#unsetPattern").prop("disabled", !$("#unsetPattern").prop("disabled"));
-        }
-
+        WhenGoogleLoadedDo(() => loadScript('./js/app.js', () => loadScript('./js/config.js')));
     </script>
 
     <script src="./js/bootstrap-notify.min.js"></script>

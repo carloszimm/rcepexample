@@ -32,23 +32,30 @@ function parseQuery(){
     return new Function('distance', 'return ' + expParsed);
 }
 
+$( "form" ).submit(function( event ) {
+    event.preventDefault();
+});
+
 function validate(){
     if($('form')[0].checkValidity() && $(patternMap.get($('#pattype option:selected').val())).queryBuilder('validate'))
         setPattern();
+    else
+        $('form').find(':submit').click();
 }
 
 function logInfo( info ){
+    //add row to DataTable
     $('#log').DataTable().row.add([
         info._eventTypeId, info._detectionTime,
         JSON.stringify(info)
     ]).draw( false );
 }
 
-function sendAlert(source, newEventType){
+function sendAlert(derivedEvent){
     $.notify({
         // options
-        title: source,
-        message: `New ${newEventType} event generated!`
+        title: derivedEvent._eventTypeId,
+        message: `New ${derivedEvent._eventSource} event generated!`
     },{
         // settings
         element: 'body',
@@ -90,9 +97,8 @@ function sendAlert(source, newEventType){
 }
 
 function openModal(data){
-    let modal = $('.modal-body');
-    modal.empty();
-    modal.JSONView(data, {collapsed: true});
+    $('.modal-title').empty().text('Details');
+    $('.modal-body').empty().JSONView(data, {collapsed: true});
     $('#myModal').modal({show:true});
 }
 
