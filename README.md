@@ -8,8 +8,7 @@ This is a web example that aims to demonstrate some operations implemented by th
  - Node.js (server-side) v.8 or higher
 
 ## Running
-To use the application, you must open the client html file in a browser.
-Also, you must run the server. However, first you must execute **once** the following command in a terminal (inside the folder project) to install all the server-side required modules:
+To use the application, you must open the client html file in a browser and run the server. However, first you must execute **once** the following command in a terminal (inside the folder project) to install all the server-side required modules:
 > [sudo] npm install
 
 To run the server, execute the following (inside the folder project as well):
